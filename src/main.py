@@ -73,7 +73,7 @@ async def main():
                 await ws.send(msgpack.packb(responseData))
             elif opCode == 2: # Identified
                 isIdentified = True
-                logging.info('Successfully identified with the proxy server.')
+                logging.info('Successfully identified with the proxy server.\n\nConnect Port: `{}`\nConnect Password: `{}`'.format(messageData['d']['cloudConnectPort'], messageData['d']['cloudConnectPassword']))
             elif opCode == 6: # Request
                 requestType = messageData['d']['t']
                 requestData = messageData['d'].get('d')

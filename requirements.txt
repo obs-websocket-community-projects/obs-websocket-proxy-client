@@ -1,0 +1,2 @@
+msgpack
+git+https://github.com/IRLToolkit/simpleobsws.git@master

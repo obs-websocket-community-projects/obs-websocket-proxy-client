@@ -11,13 +11,14 @@ obs = None
 ws = None
 isIdentified = False
 
-async def handle_obs_event(eventType, eventData = None):
+async def handle_obs_event(eventType, eventIntent, eventData):
     if not isIdentified or not ws.open:
         return
     emitData = {
         'op': 5,
         'd': {
             't': eventType,
+            'i': eventIntent,
             'd': eventData
         }
     }
@@ -27,7 +28,7 @@ async def main():
     global obs
     global ws
     global isIdentified
-    obs = simpleobsws.WebSocketClient(host=flags.obsHost, port=flags.obsPort, password=flags.obsPassword)
+    obs = simpleobsws.WebSocketClient(url='ws://{}:{}'.format(flags.obsHost, flags.obsPort), password=flags.obsPassword)
     obs.register_event_callback(handle_obs_event)
     try:
         await obs.connect()
@@ -61,7 +62,7 @@ async def main():
             #logging.info('Incoming message: {}'.format(messageData))
             opCode = messageData.get('op')
             if opCode == 0: # Hello
-                originalHello = obs._get_hello()
+                originalHello = obs._get_hello_data()
                 responseData = {
                     'op': 1,
                     'd': {
@@ -120,6 +121,10 @@ flags = parser.parse_args()
 
 if not flags.proxyHost:
     logging.error('Please specify the proxy host domain.')
+    sys.exit(1)
+
+if not flags.proxyHost.endswith('.proxy.obs-websocket.io'):
+    logging.error('Proxy host not recognized. Please use an official proxy host.')
     sys.exit(1)
 
 if not flags.sessionKey:

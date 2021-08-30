@@ -26,7 +26,6 @@ This is (currently) a CLI script to function as a prototype client for proxy.obs
 
 ### Todo
 - Implement batch requests
-- Finish implementing `eventSubscriptions`
 - Session key management system
 - Reserved port/password functionality for opencollective contributors
 - If obs-websocket connection drops, drop the connection with the cloud and terminate the application

@@ -6,10 +6,20 @@ import asyncio
 import websockets
 import msgpack
 import simpleobsws
+import pyqrcode
 
 obs = None
 ws = None
 isIdentified = False
+
+def print_qr(text):
+    qr = pyqrcode.create(text)
+    lines = qr.text().replace('0', '██').replace('1', '░░').split('\n')
+    newLines = []
+    for line in lines[3:-4]:
+        newLines.append(line[6:-6])
+    out = '\n'.join(newLines)
+    print(out)
 
 async def handle_obs_event(eventType, eventIntent, eventData):
     if not isIdentified or not ws.open:
@@ -47,6 +57,7 @@ async def main():
     except:
         logging.exception('Connection to proxy server failed:\n')
         return
+    cloudRegion = None
     try:
         while True:
             try:
@@ -62,6 +73,7 @@ async def main():
             #logging.info('Incoming message: {}'.format(messageData))
             opCode = messageData.get('op')
             if opCode == 0: # Hello
+                cloudRegion = messageData['d']['region']
                 originalHello = obs._get_hello_data()
                 responseData = {
                     'op': 1,
@@ -74,7 +86,8 @@ async def main():
                 await ws.send(msgpack.packb(responseData))
             elif opCode == 2: # Identified
                 isIdentified = True
-                logging.info('Successfully identified with the proxy server.\n\nConnect Port: `{}`\nConnect Password: `{}`'.format(messageData['d']['cloudConnectPort'], messageData['d']['cloudConnectPassword']))
+                logging.info('Successfully identified with the proxy server.\n\nConnect Port: `{}`\nConnect Password: `{}`\n\nConnect QR:'.format(messageData['d']['cloudConnectPort'], messageData['d']['cloudConnectPassword']))
+                print_qr('obswss://{}.proxy.obs-websocket.io:{}/{}'.format(cloudRegion, messageData['d']['cloudConnectPort'], messageData['d']['cloudConnectPassword']))
             elif opCode == 6: # Request
                 requestType = messageData['d']['t']
                 requestData = messageData['d'].get('d')
